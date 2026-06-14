@@ -148,12 +148,13 @@ def build_twt_log(thicknesses, velocities, values):
 
 
 def plot_wiggles(ax, gather, time, angles, angle_inc, scale):
-    for j, angle in enumerate(angles):
-        trace = gather[:, j]
-        max_amp = np.max(np.abs(trace))
+    global_max = np.max(np.abs(gather))
 
-        if max_amp > 0:
-            trace = trace / max_amp
+    if global_max == 0:
+        global_max = 1.0
+
+    for j, angle in enumerate(angles):
+        trace = gather[:, j] / global_max
 
         x = angle + trace * angle_inc * 0.5 * scale
 
@@ -167,6 +168,11 @@ def plot_wiggles(ax, gather, time, angles, angle_inc, scale):
             color="black",
             alpha=1.0,
         )
+
+    ax.invert_yaxis()
+    ax.set_xlabel("Angle (degrees)")
+    ax.set_ylabel("TWT (s)")
+    ax.grid(True)
 
     ax.invert_yaxis()
     ax.set_xlabel("Angle (degrees)")
@@ -213,7 +219,7 @@ default_props = {
     "Y": [4200.0, 2300.0, 2.50],
 }
 
-c0, c1, c2, c3 = st.columns([1.0, 0.8, 0.8, 0.8])
+c0, c1, c2, c3 = st.columns([0.8, 0.7, 0.7, 0.7])
 c0.markdown("**Lith**")
 c1.markdown("**Vp**")
 c2.markdown("**Vs**")
@@ -222,28 +228,28 @@ c3.markdown("**Rho**")
 lithology = {}
 
 for lith in lith_names:
-    c0, c1, c2, c3 = st.columns([1.0, 0.8, 0.8, 0.8])
+    c0, c1, c2, c3 = st.columns([0.8, 0.7, 0.7, 0.7])
 
     c0.write(lith)
 
     vp = c1.number_input(
         "",
         value=default_props[lith][0],
-        step=50.0,
+        step=100.0,
         key=f"{lith}_vp"
     )
 
     vs = c2.number_input(
         "",
         value=default_props[lith][1],
-        step=50.0,
+        step=100.0,
         key=f"{lith}_vs"
     )
 
     rho = c3.number_input(
         "",
         value=default_props[lith][2],
-        step=0.05,
+        step=0.2,
         key=f"{lith}_rho"
     )
 
@@ -268,7 +274,7 @@ n_layers = st.number_input(
     step=1
 )
 
-c0, c1, c2 = st.columns([0.4, 0.8, 1.2])
+c0, c1, c2 = st.columns([0.3, 0.6, 1.0])
 c0.markdown("**#**")
 c1.markdown("**Thick**")
 c2.markdown("**Lithology**")
@@ -276,7 +282,7 @@ c2.markdown("**Lithology**")
 layers = []
 
 for i in range(n_layers):
-    c0, c1, c2 = st.columns([0.4, 0.8, 1.2])
+    c0, c1, c2 = st.columns([0.3, 0.6, 1.0])
 
     c0.write(f"{i + 1}")
 
