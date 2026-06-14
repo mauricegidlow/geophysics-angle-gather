@@ -174,10 +174,26 @@ def plot_wiggles(ax, gather, time, angles, angle_inc, scale):
     ax.set_ylabel("TWT (s)")
     ax.grid(True)
 
-    ax.invert_yaxis()
-    ax.set_xlabel("Angle (degrees)")
-    ax.set_ylabel("TWT (s)")
-    ax.grid(True)
+
+def add_lithology_background(ax, df, interface_twt, tmax, lith_colours):
+    """Draw fixed-colour lithology bands behind log curves."""
+    layer_tops = [0.0] + list(interface_twt)
+    layer_bases = list(interface_twt) + [tmax]
+
+    for i, lith in enumerate(df["Lithology"]):
+        top = layer_tops[i]
+        base = layer_bases[i]
+
+        colour = lith_colours.get(lith, "#eeeeee")
+
+        ax.axhspan(
+            top,
+            base,
+            facecolor=colour,
+            alpha=0.45,
+            edgecolor="none",
+            zorder=0
+        )
 
 
 # -----------------------------
@@ -217,6 +233,15 @@ default_props = {
     "Limestone": [5000.0, 2800.0, 2.60],
     "X": [3500.0, 1800.0, 2.30],
     "Y": [4200.0, 2300.0, 2.50],
+}
+
+# Fixed lithology colours. These never change.
+lith_colours = {
+    "Sand": "#f6d44a",       # yellow
+    "Shale": "#d9d9d9",      # grey
+    "Limestone": "#9ed8ff",  # blue
+    "X": "#d8b4ff",          # purple
+    "Y": "#ffb3a7",          # salmon
 }
 
 c0, c1, c2, c3 = st.columns([0.8, 0.7, 0.7, 0.7])
@@ -450,28 +475,32 @@ fig, axes = plt.subplots(
     gridspec_kw={"width_ratios": [1, 1, 1, 1, 3]}
 )
 
-axes[0].plot(vp_log, vp_twt, color="black")
+# Draw fixed lithology colour bands behind the logs
+for ax in axes[:4]:
+    add_lithology_background(ax, df, interface_twt, tmax, lith_colours)
+
+axes[0].plot(vp_log, vp_twt, color="black", zorder=3)
 axes[0].invert_yaxis()
 axes[0].set_ylim(tmax, 0)
 axes[0].set_title("Vp")
 axes[0].set_xlabel("m/s")
 axes[0].set_ylabel("TWT (s)")
-axes[0].grid(True)
+axes[0].grid(True, zorder=1)
 
-axes[1].plot(vs_log, vs_twt, color="black")
+axes[1].plot(vs_log, vs_twt, color="black", zorder=3)
 axes[1].set_title("Vs")
 axes[1].set_xlabel("m/s")
-axes[1].grid(True)
+axes[1].grid(True, zorder=1)
 
-axes[2].plot(rho_log, rho_twt, color="black")
+axes[2].plot(rho_log, rho_twt, color="black", zorder=3)
 axes[2].set_title("Density")
 axes[2].set_xlabel("g/cc")
-axes[2].grid(True)
+axes[2].grid(True, zorder=1)
 
-axes[3].plot(ai_log, ai_twt, color="black")
+axes[3].plot(ai_log, ai_twt, color="black", zorder=3)
 axes[3].set_title("AI")
 axes[3].set_xlabel("AI")
-axes[3].grid(True)
+axes[3].grid(True, zorder=1)
 
 plot_wiggles(
     axes[4],
@@ -487,7 +516,7 @@ axes[4].set_title(f"{avo_method} Flat Angle Gather")
 
 for ax in axes:
     for d, t in zip(interface_depth, interface_twt):
-        ax.axhline(t, color="gray", linestyle="--", linewidth=0.6)
+        ax.axhline(t, color="gray", linestyle="--", linewidth=0.6, zorder=2)
 
 for d, t in zip(interface_depth, interface_twt):
     axes[0].text(
